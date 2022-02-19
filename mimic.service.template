@@ -1,0 +1,22 @@
+# - adjust paths and user, remove ".template" suffix from file name
+# - copy me to /etc/systemd/system/
+# install service file: %> sudo systemctl daemon-reload
+# start one with %> sudo systemctl start rooftop.service
+# enable on reboot with %> sudo systemctl enable rooftop.service
+# watch what it does with %> journalctl -u rooftop.service -f
+
+[Unit]
+Description=IoT mimic service for Home Assistant MQTT sensors and covers
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/home/knue/prog/iot_mimic
+Type=simple
+Restart=always
+RestartSec=100
+User=knue
+ExecStart=/usr/bin/env python3 mimic.py
+
+[Install]
+WantedBy=multi-user.target
