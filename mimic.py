@@ -40,7 +40,7 @@ class MqttSpy:
     def set_motor( self, motor, angle ):
 
         self.set_motor_angle( motor, int( angle ) )
-        time.sleep(0.5)
+        time.sleep(0.2)
         self.motor_off( motor )
 
     def mqtt_callback_connect(self, client, userdata, flags, rc):
@@ -78,7 +78,7 @@ class MqttSpy:
             d= s['start'] + ( v - s['min_value'] ) * s['factor']
             #print( "    Degree ", d )
 
-            delta= 3 # only perform change if it changes delta or more degrees
+            delta= 1 # only perform change if it changes delta or more degrees
             if abs( d - s['last'] ) >= delta:
                 print( "    Value ", v, " degree ", d, " for motor ", s['motor'] )
 
@@ -159,7 +159,6 @@ class MqttSpy:
 
             # set motor to 0 position
             self.set_motor( value['motor'], value['last'] )
-            time.sleep(0.2)
 
         self.update_intervall= 60
 
