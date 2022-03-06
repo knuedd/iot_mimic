@@ -123,6 +123,7 @@ class MqttSpy:
                 sys.exit(1)
 
         self.pwm = Adafruit_PCA9685.PCA9685()
+        self.pwm.set_pwm_freq(60)
 
         self.state= dict()
 
