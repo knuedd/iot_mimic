@@ -11,6 +11,7 @@ devices:
         topic: "homeassistant/cover/nameofcover/position"
         min_value: 0     # min value to expect, all lower values will be mapped to this
         max_value: 100   # max value to expect, all larger values will be mapped to this, needs to be > min_value
+        step: 25         # only for calibration purposes, in units of value
         min_degree: 30   # degree of servo motor correlating with min_value, may be > or < than max_degree
         max_degree: 0    # degree of servo motor correlating with max_value, may be > or < than min_degree
         motor: 0         # servo motor index on the Adafruit PCA9685 PWM driver
@@ -18,6 +19,7 @@ devices:
         topic: "homeassistant/sensor/temperature_outside/state"
         min_value: -20.0 # min value to expect, all lower values will be mapped to this
         max_value: 40.0  # max value to expect, all larger values will be mapped to this, needs to be > min_value
+        step: 20         # only for calibration purposes, in units of value
         min_degree: 160  # degree of servo motor correlating with min_value, may be > or < than max_degree
         max_degree: 40   # degree of servo motor correlating with max_value, may be > or < than min_degree
         motor: 2         # servo motor index on the Adafruit PCA9685 PWM driver
@@ -25,6 +27,7 @@ devices:
         topic: "homeassistant/sensor/humidity_outside/state"
         min_value: 0.0   # min value to expect, all lower values will be mapped to this
         max_value: 100.0 # max value to expect, all larger values will be mapped to this, needs to be > min_value
+        step: 20         # only for calibration purposes, in units of value
         min_degree: 40   # degree of servo motor correlating with min_value, may be > or < than max_degree
         max_degree: 140  # degree of servo motor correlating with max_value, may be > or < than min_degree
         motor: 3         # servo motor index on the Adafruit PCA9685 PWM driver
