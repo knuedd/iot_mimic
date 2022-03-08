@@ -9,6 +9,7 @@ import signal
 import functools
 import yaml
 import json
+import argparse
 
 from typing import Dict
 import paho.mqtt.client as mqtt
@@ -17,7 +18,10 @@ import paho.mqtt.client as mqtt
  
 # Import the PCA9685 module.
 import Adafruit_PCA9685
- 
+
+
+waittime= 0.5 # wait time after new motor setting before setting the motor off again
+
 
 class MqttSpy:
 
@@ -39,8 +43,10 @@ class MqttSpy:
     # full service: set motor to given position, wait minimal time, turn motor off again
     def set_motor( self, motor, angle ):
 
+        global waittime
+
         self.set_motor_angle( motor, int( angle ) )
-        time.sleep(0.2)
+        time.sleep( waittime )
         self.motor_off( motor )
 
     def mqtt_callback_connect(self, client, userdata, flags, rc):
@@ -155,13 +161,20 @@ class MqttSpy:
             value['min_degree']= min_degree
             value['max_degree']= max_degree
             value['last']= 0
+            
+            if 'step' in self.conf['devices'][i]:
+                value['step']= self.conf['devices'][i]['step']
+            else:
+                value['step']= 10
 
             self.state[key]= value ## add to configured devices
 
             # set motor to 0 position
             self.set_motor( value['motor'], value['last'] )
-
+        
         self.update_intervall= 60
+
+    def start_listening(self):
 
         self.mqtt_client= mqtt.Client( client_id="mqtt spy on "+str(socket.gethostname()) )
         self.mqtt_client.on_connect = self.mqtt_callback_connect
@@ -173,6 +186,7 @@ class MqttSpy:
         self.mqtt_client.loop_start()
 
         self.logger.info( "MqttSpy __init__ start")
+
 
     def loop_forever(self):
 
@@ -194,8 +208,75 @@ class MqttSpy:
         finally:
             self.loop.close()
 
+    # go through the steps of given motor to calibrate it
+    def calibrate(self,topic):
+
+        if topic in self.state:
+            
+            print( "Found matching device {}".format(topic) )
+
+            t= self.state[topic]
+            print(t)
+            print(t['min_value'])
+            print(t['max_value'])
+            print(t['min_degree'])
+            print(t['max_degree'])
+            print(t['motor'])
+            print(t['start'])
+            print(t['factor'])
+            print(t['step'])
+            
+            try:
+
+                while True:
+                    for v in range(int(t['min_value']), int(t['max_value']), t['step']):
+                    
+                        d= t['start'] + ( v - t['min_value'] ) * t['factor']
+                        print( "    Value ", v, " degree ", d, " for motor ", t['motor'] )
+
+                        self.set_motor( t['motor'], d )
+                        time.sleep(1.0)
+
+                    for v in range(int(t['max_value']), int(t['min_value']), -1*t['step']):
+                    
+                        d= t['start'] + ( v - t['min_value'] ) * t['factor']
+                        print( "    Value ", v, " degree ", d, " for motor ", t['motor'] )
+
+                        self.set_motor( t['motor'], d )
+                        time.sleep(1.0)
+
+            except KeyboardInterrupt:
+                print("Keyboard interrpt")
+
+        else:
+            print( "Device {} not found".format(topiv) )
+            
+
+
+        #try:
+            #self.loop.run_forever()
+        #except:
+            #except KeyboardInterrupt:
+            #print("Keyboard interrpt")
+        #finally:
+            #self.loop.close()
+
 
 if __name__ == '__main__':
 
+    ap= argparse.ArgumentParser()
+    ap.add_argument("-c", "--calibrate", required=False, default="", help="Calibration pattern for given topic name")
+    args= vars(ap.parse_args())
+
     obj = MqttSpy( "setup.yaml", logging.WARNING )
-    obj.loop_forever()
+
+    if "" == args["calibrate"]:
+    
+        print("Normal operation" )
+        obj.start_listening()
+        obj.loop_forever()
+
+    else:
+        t= args["calibrate"]
+        print("Calibrate for topic {}".format(t) )
+        obj.calibrate( t )
